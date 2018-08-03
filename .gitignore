@@ -1,0 +1,4 @@
+secrets.h
+data/*.jpg
+data/*.der
+.vscode
