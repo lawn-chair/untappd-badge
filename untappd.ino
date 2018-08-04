@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 #include <Ticker.h>
 
@@ -29,6 +30,8 @@ WiFiClientSecure link;
 PubSubClient aws(mqtt_server,8883,AWScallback,link);
 
 TFT_eSPI tft = TFT_eSPI();
+
+ESP8266WiFiMulti wifiMulti;
 
 // Return the minimum of two values a and b
 #define minimum(a,b)     (((a) < (b)) ? (a) : (b))
@@ -201,19 +204,22 @@ void setup() {
   }
 
   Serial.print(F("heap: ")); Serial.println(ESP.getFreeHeap());
+  WiFi.mode(WIFI_STA);
 
-  WiFi.begin(AP, AP_PASSWORD);
+  wifiMulti.addAP(AP_1, AP_1_PASSWORD);
+  wifiMulti.addAP(AP_2, AP_2_PASSWORD);
 
-  delay(100);
   tft.print(F("Connecting"));
-  while (WiFi.status() != WL_CONNECTED)
-  { 
+  while(wifiMulti.run() != WL_CONNECTED)
+  {
     delay(500);
     tft.print(".");
   }
   tft.println();
+  tft.print(F("Connected to: "));
+  tft.println(WiFi.SSID().c_str());
 
-  tft.print(F("Connected, IP address: "));
+  tft.print(F("IP: "));
   tft.println(WiFi.localIP());
 
   fs::File cert = SPIFFS.open(F("/cert.der"), "r");
@@ -231,7 +237,7 @@ void setup() {
   cert.close();
   key.close();
 
-  delay(1500);
+  delay(4000);
 
   tft.fillScreen(TFT_BLACK);
   drawJpeg("/avatar.jpg", 14, 0);
